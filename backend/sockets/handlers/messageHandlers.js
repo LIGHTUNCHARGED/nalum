@@ -261,6 +261,42 @@ async function handleMessageDeleted(io, socket, data) {
           io.to(`user:${recipientId}`).emit('notification:removed', {
             notificationId: deletedNotif._id.toString()
           });
+
+          // Find the previous unread message in this conversation (if any)
+          const previousMessage = await Message.findOne({
+            conversation: conversationId,
+            sender: userId,
+            _id: { $ne: messageId }, // Exclude the deleted message
+            createdAt: { $lt: message.createdAt }, // Messages sent before the deleted one
+            'readBy.user': { $ne: recipientId } // Only messages not read by the recipient
+          })
+          .sort({ createdAt: -1 }) // Most recent first
+          .limit(1);
+
+          // If there's a previous unread message, create a notification for it
+          if (previousMessage) {
+            const sender = await User.findById(userId).select('name');
+            const newNotification = await notificationService.createNotification({
+              recipientId: recipientId.toString(),
+              senderId: userId,
+              type: 'new_message',
+              title: 'New Message',
+              message: `${sender.name}: ${previousMessage.content.substring(0, 100)}${previousMessage.content.length > 100 ? '...' : ''}`,
+              actionUrl: `/dashboard/chat?conversation=${conversationId}`,
+              priority: 'high',
+              relatedEntity: {
+                entityType: 'message',
+                entityId: previousMessage._id.toString(),
+              },
+              metadata: {
+                senderId: userId,
+                senderName: sender.name,
+                conversationId: conversationId.toString(),
+                messageId: previousMessage._id.toString(),
+                messagePreview: previousMessage.content.substring(0, 100)
+              }
+            });
+          }
         }
       }
     }

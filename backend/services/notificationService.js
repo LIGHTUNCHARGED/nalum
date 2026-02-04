@@ -30,18 +30,37 @@ class NotificationService {
     metadata = {},
   }) {
     try {
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📬 NOTIFICATION CREATION STARTED');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('Type:', type);
+      console.log('Recipient ID:', recipientId);
+      console.log('Sender ID:', senderId || 'System');
+      console.log('Title:', title);
+      console.log('Message:', message);
+      console.log('Priority:', priority);
+      console.log('Action URL:', actionUrl);
+      console.log('Metadata:', JSON.stringify(metadata, null, 2));
+      
       // Check user preferences
       const preferences = await this.getUserPreferences(recipientId);
+      console.log('📋 User Preferences Retrieved:', {
+        pushEnabled: preferences.push[type] !== false,
+        emailEnabled: preferences.email[type] === true,
+        mutedTypes: preferences.inApp.mutedTypes,
+        dndEnabled: preferences.doNotDisturb.enabled
+      });
       
       // Check if type is muted
       if (preferences.inApp.mutedTypes.includes(type)) {
-        console.log(`Notification type ${type} is muted for user ${recipientId}`);
+        console.log('🔇 NOTIFICATION MUTED - Type is in muted list');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         return null;
       }
 
       // Check Do Not Disturb
       if (this.isDoNotDisturbActive(preferences)) {
-        console.log(`DND active for user ${recipientId}, notification will be queued`);
+        console.log('🌙 DND ACTIVE - Notification queued but may be delayed');
       }
 
       // Create notification document
@@ -58,20 +77,34 @@ class NotificationService {
         expiresAt: this.getExpiryDate(type),
       });
 
+      console.log('✅ Notification Document Created - ID:', notification._id);
+
       // Send via different channels
       const deliveryStatus = {};
 
       // 1. In-app (always send if not muted)
+      console.log('\n📱 Sending In-App Notification...');
       deliveryStatus.inApp = await this.sendInApp(notification);
+      console.log('In-App Status:', deliveryStatus.inApp ? '✅ Sent' : '❌ Failed');
 
       // 2. Push notification (if user has it enabled)
       if (preferences.push[type] !== false) {
+        console.log('\n🔔 Sending Push Notification...');
         deliveryStatus.push = await this.sendPushNotification(notification);
+        console.log('Push Status:', deliveryStatus.push ? '✅ Sent' : '❌ Failed');
+      } else {
+        console.log('\n🔕 Push Notification Skipped - Disabled in preferences');
+        deliveryStatus.push = false;
       }
 
       // 3. Email notification (if user has it enabled)
       if (preferences.email[type] === true) {
+        console.log('\n📧 Sending Email Notification...');
         deliveryStatus.email = await this.sendEmailNotification(notification);
+        console.log('Email Status:', deliveryStatus.email ? '✅ Sent' : '❌ Failed');
+      } else {
+        console.log('\n📭 Email Notification Skipped - Disabled in preferences');
+        deliveryStatus.email = false;
       }
 
       // Update delivery status
@@ -79,10 +112,14 @@ class NotificationService {
         deliveryStatus,
       });
 
+      console.log('\n📊 DELIVERY SUMMARY:', deliveryStatus);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
       return notification;
 
     } catch (error) {
-      console.error('Error creating notification:', error);
+      console.error('❌ ERROR CREATING NOTIFICATION:', error);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       throw error;
     }
   }
@@ -132,14 +169,27 @@ class NotificationService {
    */
   async sendPushNotification(notification) {
     try {
+      console.log('   🔍 Looking for active push subscriptions...');
       const subscriptions = await PushSubscription.find({
         user: notification.recipient,
         active: true,
       });
 
+      console.log(`   📊 Found ${subscriptions.length} active subscription(s)`);
+
       if (subscriptions.length === 0) {
+        console.log('   ⚠️  No active push subscriptions found');
         return false;
       }
+
+      subscriptions.forEach((sub, index) => {
+        console.log(`   Subscription ${index + 1}:`, {
+          browser: sub.deviceInfo?.browser,
+          os: sub.deviceInfo?.os,
+          endpoint: sub.endpoint.substring(0, 50) + '...',
+          createdAt: sub.createdAt
+        });
+      });
 
       const payload = JSON.stringify({
         title: notification.title,
@@ -152,8 +202,11 @@ class NotificationService {
         },
       });
 
-      const pushPromises = subscriptions.map(async (subscription) => {
+      console.log('   📦 Push Payload:', payload);
+
+      const pushPromises = subscriptions.map(async (subscription, index) => {
         try {
+          console.log(`   📤 Sending to subscription ${index + 1}...`);
           await webPush.sendNotification(
             {
               endpoint: subscription.endpoint,
@@ -169,23 +222,30 @@ class NotificationService {
           subscription.lastUsed = new Date();
           await subscription.save();
 
+          console.log(`   ✅ Subscription ${index + 1} - Sent successfully`);
           return true;
         } catch (error) {
           // If subscription is expired/invalid, deactivate it
           if (error.statusCode === 410 || error.statusCode === 404) {
+            console.log(`   ⚠️  Subscription ${index + 1} - Expired/Invalid (${error.statusCode}), deactivating...`);
             subscription.active = false;
             await subscription.save();
+          } else {
+            console.error(`   ❌ Subscription ${index + 1} - Failed:`, error.message);
           }
-          console.error('Push notification failed:', error);
           return false;
         }
       });
 
       const results = await Promise.allSettled(pushPromises);
+      const successCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
+      
+      console.log(`   📊 Push Results: ${successCount}/${subscriptions.length} successful`);
+      
       return results.some(r => r.status === 'fulfilled' && r.value === true);
 
     } catch (error) {
-      console.error('Error sending push notification:', error);
+      console.error('   ❌ Error sending push notification:', error);
       return false;
     }
   }

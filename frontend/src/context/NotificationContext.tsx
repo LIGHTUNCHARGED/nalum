@@ -113,6 +113,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       // Find the notification being deleted
       const notification = notifications.find(n => n.id === notificationId);
       
+      // If notification doesn't exist locally, it's already been removed
+      if (!notification) {
+        console.log('Notification already removed from local state:', notificationId);
+        return;
+      }
+      
       // If it's a message notification and we want to delete all from same sender
       if (deleteAllFromSameSender && notification?.type === 'new_message' && notification.sender?._id) {
         const senderId = notification.sender._id;
@@ -122,9 +128,17 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
           .filter(n => n.type === 'new_message' && n.sender?._id === senderId)
           .map(n => n.id);
 
-        // Delete all of them from backend
-        await Promise.all(
-          notificationIdsToDelete.map(id => api.delete(`/notifications/${id}`))
+        // Delete all of them from backend (silently ignore 404s)
+        await Promise.allSettled(
+          notificationIdsToDelete.map(id => 
+            api.delete(`/notifications/${id}`).catch(err => {
+              if (err.response?.status === 404) {
+                console.log(`Notification ${id} already deleted on server`);
+                return null;
+              }
+              throw err;
+            })
+          )
         );
 
         // Update local state - remove all message notifications from this sender
@@ -133,9 +147,18 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         ));
       } else {
         // Single notification deletion
-        await api.delete(`/notifications/${notificationId}`);
+        try {
+          await api.delete(`/notifications/${notificationId}`);
+        } catch (err: any) {
+          // Ignore 404 - notification already deleted
+          if (err.response?.status === 404) {
+            console.log(`Notification ${notificationId} already deleted on server`);
+          } else {
+            throw err;
+          }
+        }
 
-        // Update local state
+        // Update local state regardless (optimistic delete)
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
       }
 
@@ -151,6 +174,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     // New notification received
     socket.on('notification', (notification: Notification) => {
       setNotifications(prev => [notification, ...prev]);
+      // Increment unread count if the notification is unread
+      if (!notification.read) {
+        setUnreadCount(prev => prev + 1);
+      }
     });
 
     // Badge count update
@@ -160,8 +187,14 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
     // Notification removed (e.g., when message is unsent)
     socket.on('notification:removed', ({ notificationId }: { notificationId: string }) => {
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setNotifications(prev => {
+        const notifToRemove = prev.find(n => n.id === notificationId);
+        // Only decrease count if the removed notification was unread
+        if (notifToRemove && !notifToRemove.read) {
+          setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+        }
+        return prev.filter(n => n.id !== notificationId);
+      });
     });
 
     return () => {

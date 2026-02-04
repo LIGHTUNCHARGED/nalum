@@ -146,26 +146,23 @@ exports.subscribePush = async (req, res) => {
       });
     }
 
-    // Check if subscription already exists
-    let subscription = await PushSubscription.findOne({ endpoint });
-
-    if (subscription) {
-      // Update existing subscription
-      subscription.user = userId;
-      subscription.keys = keys;
-      subscription.deviceInfo = deviceInfo;
-      subscription.active = true;
-      subscription.lastUsed = new Date();
-      await subscription.save();
-    } else {
-      // Create new subscription
-      subscription = await PushSubscription.create({
+    // Use findOneAndUpdate with upsert to avoid race conditions
+    const subscription = await PushSubscription.findOneAndUpdate(
+      { endpoint },
+      {
         user: userId,
         endpoint,
         keys,
         deviceInfo,
-      });
-    }
+        active: true,
+        lastUsed: new Date(),
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
+    );
 
     res.status(201).json({
       success: true,
@@ -257,8 +254,22 @@ exports.updatePreferences = async (req, res) => {
  * Get VAPID public key (for frontend)
  */
 exports.getVapidPublicKey = async (req, res) => {
+  const publicKey = process.env.VAPID_PUBLIC_KEY || null;
+  
+  console.log('\n🔑 VAPID PUBLIC KEY REQUEST');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('Key exists:', !!publicKey);
+  if (publicKey) {
+    console.log('Key length:', publicKey.length);
+    console.log('Key (first 50):', publicKey.substring(0, 50) + '...');
+    console.log('Key (last 50):', '...' + publicKey.substring(publicKey.length - 50));
+  } else {
+    console.log('⚠️ WARNING: VAPID_PUBLIC_KEY not set in environment!');
+  }
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  
   res.status(200).json({
     success: true,
-    publicKey: process.env.VAPID_PUBLIC_KEY || null,
+    publicKey: publicKey,
   });
 };

@@ -5,7 +5,7 @@ import { ProfileProvider, useProfile } from "@/context/ProfileContext";
 import { cn } from "@/lib/utils";
 // import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Removed
 // import { Menu } from "lucide-react"; // Removed
-import { Home, MessageSquare, Search, ArrowLeft, Users, SlidersHorizontal, X, GraduationCap, Calendar } from "lucide-react";
+import { Home, MessageSquare, Search, ArrowLeft, Users, SlidersHorizontal, X, GraduationCap, Calendar, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api, { globalSearch } from "@/lib/api";
 
 import { useChatContext } from "@/context/ChatContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { useEffect, useState, useRef } from "react";
 
 const DashboardContent = () => {
@@ -47,10 +48,12 @@ const DashboardContent = () => {
 
   const isChatPage = location.pathname.startsWith("/dashboard/chat");
   const isConnectionsPage = location.pathname.startsWith("/dashboard/connections");
+  const isNotificationsPage = location.pathname.startsWith("/dashboard/notifications");
   const { profile } = useProfile();
   // const { logout } = useAuth(); // Removed unused
   const { conversations } = useConversations(); // Restored hook usage
   const { socket } = useChatContext();
+  const { unreadCount: notificationUnreadCount } = useNotifications();
   const queryClient = useQueryClient();
 
   // Auto-focus input when search opens
@@ -103,7 +106,7 @@ const DashboardContent = () => {
       </div>
 
       {/* Mobile Top Bar - Main Dashboard */}
-      {!isChatPage && (
+      {!isChatPage && !isNotificationsPage && (
         <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/10 px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={nsutLogo} alt="NSUT Alumni" width="32" height="32" className="h-8 w-8" />
@@ -181,6 +184,16 @@ const DashboardContent = () => {
             >
               <Search className="h-6 w-6" />
             </button>
+
+            <Link 
+              to="/dashboard/notifications" 
+              className="p-2 text-gray-400 hover:text-white transition-colors relative flex-shrink-0"
+            >
+              <Bell className="h-6 w-6" />
+              {notificationUnreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-950" />
+              )}
+            </Link>
 
             <Link to="/dashboard/chat" className="p-2 text-gray-400 hover:text-white transition-colors relative flex-shrink-0">
               <MessageSquare className="h-6 w-6" />
@@ -553,7 +566,7 @@ const DashboardContent = () => {
       )}
 
       {/* Mobile Bottom Navigation Bar */}
-      {!isChatPage && (
+      {!isChatPage && !isNotificationsPage && (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/90 backdrop-blur-lg border-t border-white/10 flex items-center justify-around px-2 py-2 shadow-2xl md:hidden h-16">
           <Link
             to="/dashboard"
@@ -650,15 +663,17 @@ const DashboardContent = () => {
       {/* Main Content Area */}
       <main className={cn(
         "flex-1 h-full relative z-10 scrollbar-hide",
-        isChatPage ? "overflow-hidden" : "overflow-y-auto"
+        isChatPage || isNotificationsPage ? "overflow-hidden" : "overflow-y-auto"
       )}>
         <div className={cn(
           "relative mx-auto transition-all duration-300 min-h-full flex flex-col",
           isChatPage
             ? location.pathname.match(/\/dashboard\/chat\/.+/) ? "pt-0 pb-0 px-0 max-w-full h-full" : "pt-16 pb-0 px-0 max-w-full h-full"
-            : isConnectionsPage
-              ? "pt-16 pb-0 px-0 max-w-full"
-              : "px-4 pt-28 pb-20 md:p-8 max-w-7xl"
+            : isNotificationsPage
+              ? "pt-0 pb-0 px-0 max-w-full h-full"
+              : isConnectionsPage
+                ? "pt-16 pb-0 px-0 max-w-full"
+                : "px-4 pt-28 pb-20 md:p-8 max-w-7xl"
         )}>
           <Outlet />
         </div>
