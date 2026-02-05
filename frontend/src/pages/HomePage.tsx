@@ -2,8 +2,10 @@ import Hero from '@/components/home/Hero';
 import IconCtaSection from '@/components/home/IconCtaSection';
 import ExploreLoginCta from '@/components/home/ExploreLoginCta';
 import NewsSection from '@/components/home/NewsSection';
-import BenefitsSection from '@/components/home/BenefitsSection';
 import GivingSection from '@/components/home/GivingSection';
+import WhereWeWorkSection from '@/components/home/WhereWeWorkSection';
+import AlumniDirectorySection from '@/components/home/AlumniDirectorySection';
+import NotableAlumniSection from '@/components/home/NotableAlumniSection';
 
 const HomePage = () => {
   return (
@@ -11,8 +13,10 @@ const HomePage = () => {
       <Hero />
       <ExploreLoginCta />
       <IconCtaSection />
+      <WhereWeWorkSection />
+      <NotableAlumniSection />
+      <AlumniDirectorySection />
       <NewsSection />
-      <BenefitsSection />
       <GivingSection />
     </main>
   );
