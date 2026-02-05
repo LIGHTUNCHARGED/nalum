@@ -13,6 +13,7 @@ import { useChatContext } from "@/context/ChatContext";
 import { useMessages } from "@/hooks/useMessages";
 import { useConversations } from "@/hooks/useConversations";
 import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { useQueryClient } from "@tanstack/react-query";
 import UserAvatar from "@/components/UserAvatar";
 import { useViewportHeight } from "@/hooks/useViewportHeight";
@@ -55,6 +56,7 @@ export const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
   const { socket, isConnected } = useChatContext();
   const { user } = useAuth();
   const { createConversation } = useConversations();
+  const { notifications, deleteNotification } = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
@@ -163,7 +165,20 @@ export const ChatWindow = ({ conversation, onBack }: ChatWindowProps) => {
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
       });
     }
-  }, [activeConversationId, socket, isConnected, queryClient]);
+    
+    // Clear message notifications from this sender
+    const senderId = conversation.otherParticipant?._id;
+    if (senderId && notifications.length > 0) {
+      const messageNotifications = notifications.filter(
+        n => n.type === 'new_message' && n.sender?._id === senderId
+      );
+      
+      // Delete all message notifications from this sender
+      messageNotifications.forEach(notif => {
+        deleteNotification(notif.id);
+      });
+    }
+  }, [activeConversationId, socket, isConnected, queryClient, conversation.otherParticipant, notifications, deleteNotification]);
 
   // Mark messages as read when OPENING conversation (conversationId changes)
   // and when window gains focus

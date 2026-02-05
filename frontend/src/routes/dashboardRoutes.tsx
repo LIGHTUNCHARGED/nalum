@@ -21,6 +21,7 @@ const CreatePost = lazy(() => import("@/pages/dashboard/CreatePost"));
 const ViewPost = lazy(() => import("@/pages/dashboard/ViewPost"));
 const Queries = lazy(() => import("@/pages/dashboard/Queries"));
 const Giving = lazy(() => import("@/pages/dashboard/Giving"));
+const MobileNotifications = lazy(() => import("@/pages/dashboard/MobileNotifications"));
 
 export function DashboardRoutes() {
   return (
@@ -53,6 +54,7 @@ export function DashboardRoutes() {
         <Route path="/dashboard/alumni" element={<AlumniDirectory />} />
         <Route path="/dashboard/alumni/:userId" element={<ViewProfile />} />
         <Route path="/dashboard/connections" element={<ConnectionsPage />} />
+        <Route path="/dashboard/notifications" element={<MobileNotifications />} />
         
         {/* Chat routes */}
         <Route
