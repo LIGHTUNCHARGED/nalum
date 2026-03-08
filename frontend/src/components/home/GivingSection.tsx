@@ -45,33 +45,37 @@ const GivingSection = () => {
       <div className="container mx-auto max-w-7xl px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <Heart className="w-10 h-10 text-nsut-yellow" />
-            <h2 className="font-serif text-4xl md:text-5xl font-bold">
+          <div className="flex items-center justify-center gap-3 md:gap-4 mb-4 flex-wrap">
+            <Heart className="w-8 h-8 md:w-10 md:h-10 text-nsut-yellow" />
+            <h2 className="font-serif text-2xl md:text-5xl font-bold">
               Giving Back to NSUT
             </h2>
           </div>
-          <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed text-white/90">
+          <p className="text-base md:text-xl max-w-3xl mx-auto leading-relaxed text-white/90">
             Sustaining Excellence Through Alumni Contributions. Help sustain a supportive ecosystem where knowledge, opportunity, and values are passed from one generation to the next.
           </p>
         </div>
 
-        {/* Contribution Types Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {/* Contribution Types — Editorial List */}
+        <div className="max-w-4xl mx-auto mb-12">
           {contributionTypes.map((type, index) => (
-            <div
-              key={index}
-              className="group bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className={`w-12 h-12 bg-gradient-to-br ${type.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                <type.icon className="w-6 h-6 text-white" />
+            <div key={index}>
+              <div className="flex items-start gap-4 md:gap-6 py-5 md:py-6">
+                <span className="text-nsut-yellow/40 font-serif text-4xl md:text-5xl font-bold leading-none select-none shrink-0 w-10 md:w-14 text-right">
+                  {index + 1}
+                </span>
+                <div className="pt-1">
+                  <h3 className="font-serif text-lg md:text-xl font-bold text-white mb-1">
+                    {type.title}
+                  </h3>
+                  <p className="text-white/70 text-sm md:text-base leading-relaxed">
+                    {type.description}
+                  </p>
+                </div>
               </div>
-              <h3 className="font-serif text-lg font-bold text-nsut-yellow mb-2">
-                {type.title}
-              </h3>
-              <p className="text-white/80 text-sm leading-relaxed">
-                {type.description}
-              </p>
+              {index < contributionTypes.length - 1 && (
+                <hr className="border-nsut-yellow/20 ml-14 md:ml-20" />
+              )}
             </div>
           ))}
         </div>
