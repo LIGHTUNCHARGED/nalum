@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import MentionTextarea from "@/components/MentionTextarea";
 import { useProfile } from "@/context/ProfileContext";
 import UserAvatar from "@/components/UserAvatar";
 import { Image, X } from "lucide-react";
@@ -113,12 +113,12 @@ const CreatePostModal = ({
             onChange={(e) => setTitle(e.target.value)}
             className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus-visible:ring-blue-500/50"
           />
-          <Textarea
-            placeholder="What's on your mind?"
+          <MentionTextarea
+            placeholder="What's on your mind? Type @ to mention someone"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={6}
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 resize-none focus-visible:ring-blue-500/50"
+            onChange={setContent}
+            style={{ minHeight: "144px" }}
+            className="focus-visible:ring-blue-500/50"
           />
 
           {/* Image Previews */}

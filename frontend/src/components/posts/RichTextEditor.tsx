@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Bold, Italic, Underline, Strikethrough, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import MentionTextarea from "@/components/MentionTextarea";
 import { cn } from "@/lib/utils";
 
 interface RichTextEditorProps {
@@ -114,14 +114,13 @@ const RichTextEditor = ({ value, onChange, placeholder = "What do you want to ta
       </div>
 
       {/* Text Area */}
-      <Textarea
+      <MentionTextarea
         ref={textareaRef}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        onChange={onChange}
+        placeholder={`${placeholder} — type @ to mention someone`}
         className={cn(
-          "w-full bg-white/5 border-white/10 text-white placeholder:text-gray-500 resize-none focus:ring-2 focus:ring-blue-500/20",
-          "font-normal text-base leading-relaxed"
+          "font-normal text-base leading-relaxed focus:ring-2 focus:ring-blue-500/20"
         )}
         style={{ minHeight }}
       />

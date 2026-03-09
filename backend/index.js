@@ -22,6 +22,7 @@ const givingRoutes = require("./routes/givings.js");
 const notificationRoutes = require("./routes/notifications.js");
 const alumniMapRoutes = require("./routes/alumniMap.js");
 const geocodeRoutes = require("./routes/geocode.js");
+const mentionRoutes = require("./routes/mention.js");
 const { startProcessing } = require("./services/geocodingQueue");
 const { checkBanned } = require("./middleware/checkBanned.js");
 const morgan = require("morgan");
@@ -104,6 +105,7 @@ app.use("/api/givings", checkBanned, givingRoutes);
 app.use("/api/notifications", checkBanned, notificationRoutes);
 app.use("/api/alumni-map", alumniMapRoutes);
 app.use("/api/geocode", checkBanned, geocodeRoutes);
+app.use("/api/mention", checkBanned, mentionRoutes);
 
 // Admin routes (no checkBanned needed)
 app.use("/api/admin", adminRoutes);

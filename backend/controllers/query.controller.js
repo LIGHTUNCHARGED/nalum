@@ -1,5 +1,6 @@
 const Query = require('../models/query.model');
 const User = require('../models/user/user.model');
+const { notifyMentions } = require('../services/mentionHelper');
 
 // Create a new query (Students & Alumni)
 exports.createQuery = async (req, res) => {
@@ -28,6 +29,18 @@ exports.createQuery = async (req, res) => {
       content,
       images,
       userId: user_id,
+    });
+
+    // Fire mention notifications (non-blocking)
+    const author = await User.findById(user_id).select('name').lean();
+    notifyMentions({
+      text: content,
+      senderId: user_id,
+      senderName: author?.name || 'Someone',
+      contextType: 'query',
+      contextTitle: title,
+      actionUrl: `/dashboard/queries`,
+      entityId: query._id.toString(),
     });
 
     return res.status(201).json({

@@ -1,6 +1,7 @@
 const Post = require("../models/posts/post.model");
 const User = require("../models/user/user.model");
 const Settings = require("../models/admin/settings.model");
+const { notifyMentions } = require("../services/mentionHelper");
 
 // Helper function to check if posts should be auto-approved
 async function shouldAutoApprove() {
@@ -48,6 +49,20 @@ exports.createPost = async (req, res) => {
       userId: user_id,
       status: autoApprove ? "approved" : "pending",
     });
+
+    // Only notify mentions immediately when the post is already approved.
+    // For pending posts, notifications are sent when an admin approves.
+    if (autoApprove) {
+      notifyMentions({
+        text: content,
+        senderId: user_id,
+        senderName: user.name,
+        contextType: "post",
+        contextTitle: title,
+        actionUrl: `/dashboard/posts/${post._id}`,
+        entityId: post._id.toString(),
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -171,10 +186,11 @@ exports.getPostById = async (req, res) => {
       });
     }
 
-    // Check if user is post owner or if post is approved
+    // Check if user is post owner, admin, or if post is approved
     const { user_id } = req.user;
     const isOwner = post.userId._id.toString() === user_id.toString();
-    if (!isOwner && post.status !== "approved") {
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin && post.status !== "approved") {
       return res.status(403).json({
         success: false,
         message: "Post not found",
@@ -255,6 +271,21 @@ exports.updatePost = async (req, res) => {
     }
 
     await post.save();
+
+    // Only notify mentions immediately for auto-approved edits.
+    // Pending posts will trigger notifications on admin approval.
+    if (post.status === "approved") {
+      const author = await User.findById(user_id).select("name").lean();
+      notifyMentions({
+        text: post.content,
+        senderId: user_id,
+        senderName: author?.name || "Someone",
+        contextType: "post",
+        contextTitle: post.title,
+        actionUrl: `/dashboard/posts/${post._id}`,
+        entityId: post._id.toString(),
+      });
+    }
 
     return res.status(200).json({
       success: true,

@@ -1,6 +1,7 @@
 const Post = require("../../models/posts/post.model");
 const User = require("../../models/user/user.model");
 const { logAdminActivity } = require("../../middleware/adminAuth");
+const { notifyMentions } = require("../../services/mentionHelper");
 const fs = require("fs");
 const path = require("path");
 
@@ -98,6 +99,18 @@ exports.approvePost = async (req, res) => {
     post.reviewed_by = req.admin.email;
     post.reviewed_at = new Date();
     await post.save();
+
+    // Now that the post is live and viewable, notify any mentioned users
+    const author = await User.findById(post.userId).select("name").lean();
+    notifyMentions({
+      text: post.content,
+      senderId: post.userId.toString(),
+      senderName: author?.name || "Someone",
+      contextType: "post",
+      contextTitle: post.title,
+      actionUrl: `/dashboard/posts/${post._id}`,
+      entityId: post._id.toString(),
+    });
 
     // Log activity
     await logAdminActivity(

@@ -6,7 +6,7 @@ import { Loader2, MessageSquare, Send, Image as ImageIcon, X } from "lucide-reac
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import MentionTextarea from "@/components/MentionTextarea";
 import { toast } from "sonner";
 
 interface Query {
@@ -180,14 +180,13 @@ const Queries = () => {
               </label>
               <span className="text-xs text-gray-400">{content.length}/500</span>
             </div>
-            <Textarea
+            <MentionTextarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Describe your query in detail..."
+              onChange={setContent}
+              placeholder="Describe your query in detail... (type @ to mention someone)"
               maxLength={500}
-              rows={4}
               required
-              className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 resize-none"
+              style={{ minHeight: "96px" }}
             />
           </div>
 
