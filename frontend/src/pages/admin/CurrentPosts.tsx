@@ -6,12 +6,12 @@ import api from "../../lib/api";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { toast } from "sonner";
 import PostCardAdmin, { Post } from "../../components/posts/PostCardAdmin";
 import AdminCreatePostModal from "../../components/posts/AdminCreatePostModal";
+import PostFormModal, { PostFormPost } from "../../components/posts/PostFormModal";
 
 const CurrentPosts = () => {
   const location = useLocation();
@@ -27,14 +27,9 @@ const CurrentPosts = () => {
   // Create Post Modal
   const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
 
-  // Edit Dialog
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    title: "",
-    content: "",
-  });
-  const [updating, setUpdating] = useState(false);
+  // Edit Modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<PostFormPost | null>(null);
 
   // Delete Dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -150,41 +145,18 @@ const CurrentPosts = () => {
   };
 
   const handleEditClick = (post: Post) => {
-    setSelectedPost(post);
-    setEditFormData({
-      title: post.title,
-      content: post.content,
-    });
-    setEditDialogOpen(true);
+    setSelectedPost(post as unknown as PostFormPost);
+    setEditModalOpen(true);
   };
 
-  const handleUpdatePost = async () => {
+  const handleAdminEditSubmit = async (formData: FormData) => {
     if (!selectedPost) return;
-
-    if (!editFormData.title.trim() || !editFormData.content.trim()) {
-      toast.error("Title and content are required");
-      return;
-    }
-
-    setUpdating(true);
-    try {
-      const response = await api.put(`/admin/posts/${selectedPost._id}`, {
-        title: editFormData.title,
-        content: editFormData.content,
-      });
-
-      if (response.data.success) {
-        toast.success("Post updated successfully!");
-        setEditDialogOpen(false);
-        setSelectedPost(null);
-        fetchPosts();
-      }
-    } catch (err) {
-      console.error("Failed to update post:", err);
-      toast.error(err.response?.data?.message || "Failed to update post");
-    } finally {
-      setUpdating(false);
-    }
+    await api.put(`/admin/posts/${selectedPost._id}`, {
+      title: formData.get("title") as string,
+      content: formData.get("content") as string,
+    });
+    toast.success("Post updated successfully!");
+    fetchPosts();
   };
 
   const handleDeleteClick = (post: Post) => {
@@ -352,80 +324,32 @@ const CurrentPosts = () => {
           </div>
         )}
 
-        {/* Edit Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Post</DialogTitle>
-              <DialogDescription>
-                Update the post title and content
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 mt-4">
-              {/* Title */}
-              <div>
-                <Label htmlFor="edit-title">Post Title *</Label>
-                <Input
-                  id="edit-title"
-                  value={editFormData.title}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, title: e.target.value })
-                  }
-                  placeholder="Enter post title"
-                />
-              </div>
-
-              {/* Content */}
-              <div>
-                <Label htmlFor="edit-content">Content *</Label>
-                <Textarea
-                  id="edit-content"
-                  value={editFormData.content}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      content: e.target.value,
-                    })
-                  }
-                  className="min-h-[200px]"
-                  placeholder="Enter post content"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t">
-                <Button
-                  type="button"
-                  onClick={() => setEditDialogOpen(false)}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700"
-                  disabled={updating}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleUpdatePost}
-                  disabled={updating}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
-                >
-                  {updating ? "Updating..." : "Update Post"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Edit Post Modal */}
+        <PostFormModal
+          open={editModalOpen}
+          post={selectedPost}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedPost(null);
+          }}
+          onSuccess={() => {
+            setEditModalOpen(false);
+            setSelectedPost(null);
+            fetchPosts();
+          }}
+          customSubmit={handleAdminEditSubmit}
+        />
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Delete Post</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete "{postToDelete?.title}"? This
-                action cannot be undone.
-              </DialogDescription>
             </DialogHeader>
+            <p className="text-sm text-gray-500 mt-2">
+              Are you sure you want to delete "{postToDelete?.title}"? This
+              action cannot be undone.
+            </p>
             <div className="flex gap-3 mt-4">
               <Button
                 onClick={() => setDeleteDialogOpen(false)}

@@ -58,7 +58,6 @@ const AlumniDirectory = () => {
       <div className="container mx-auto">
         <div className="max-w-7xl mx-auto">
 
-
           {/* Header */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">
@@ -151,6 +150,8 @@ const AlumniDirectory = () => {
                       filters.branch ||
                       filters.campus ||
                       filters.company ||
+                      filters.city ||
+                      filters.country ||
                       filters.connectionFilter !== "all" ||
                       filters.roleFilter !== "all" ||
                       filters.skills.length > 0) && (
@@ -276,6 +277,38 @@ const AlumniDirectory = () => {
                           value={filters.company}
                           onChange={(e) =>
                             handleFilterChange("company", e.target.value)
+                          }
+                          className="bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                        />
+                      </div>
+
+                      {/* City Filter */}
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="text-gray-300">
+                          City
+                        </Label>
+                        <Input
+                          id="city"
+                          placeholder="Search by city..."
+                          value={filters.city}
+                          onChange={(e) =>
+                            handleFilterChange("city", e.target.value)
+                          }
+                          className="bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                        />
+                      </div>
+
+                      {/* Country Filter */}
+                      <div className="space-y-2">
+                        <Label htmlFor="country" className="text-gray-300">
+                          Country
+                        </Label>
+                        <Input
+                          id="country"
+                          placeholder="Search by country..."
+                          value={filters.country}
+                          onChange={(e) =>
+                            handleFilterChange("country", e.target.value)
                           }
                           className="bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-blue-500/50 focus:ring-blue-500/20"
                         />
@@ -478,7 +511,7 @@ const AlumniDirectory = () => {
                 <Button
                   onClick={handleClearResults}
                   variant="outline"
-                  className="mt-4 border-white/10 hover:bg-white/5"
+                  className="mt-4 bg-white text-black border-white/20 hover:bg-gray-100 hover:text-black"
                 >
                   Clear Search
                 </Button>
@@ -538,8 +571,8 @@ const AlumniDirectory = () => {
             </>
           )}
         </div>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 };
 

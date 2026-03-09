@@ -18,6 +18,7 @@ const GivingHome = lazy(() => import("@/pages/benefits/givingHome"));
 const AttendAnEvent = lazy(() => import("@/pages/events/attendAnEvent"));
 const ExploreCommunities = lazy(() => import("@/pages/communities/exploreCommunities"));
 const AboutPage = lazy(() => import("@/pages/About"));
+const AlumniMapPage = lazy(() => import("@/pages/AlumniMapPage"));
 
 export function PublicRoutes() {
   return (
@@ -37,6 +38,7 @@ export function PublicRoutes() {
       <Route path="/events/attend" element={<AttendAnEvent />} />
       <Route path="/communities/explore" element={<ExploreCommunities />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/map" element={<AlumniMapPage />} />
     </Route>
   );
 }
