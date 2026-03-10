@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Profile = require("../../models/user/profile.model");
+const User = require("../../models/user/user.model");
 const { protect } = require("../../middleware/auth");
 const { addToQueue } = require("../../services/geocodingQueue");
 
@@ -64,7 +65,12 @@ router.put("/", protect, async (req, res) => {
     if (social_media !== undefined) profile.social_media = { ...profile.social_media, ...social_media };
     if (skills !== undefined) profile.skills = skills;
     if (experience !== undefined) profile.experience = experience;
-    if (location !== undefined) profile.location = location;
+    if (location !== undefined) {
+      const userDoc = await User.findById(userId).select("role");
+      if (userDoc && userDoc.role === "alumni") {
+        profile.location = location;
+      }
+    }
 
     await profile.save();
 

@@ -21,6 +21,7 @@ interface Post {
     _id: string;
     name: string;
     email: string;
+    role: string;
     profile_picture?: string;
   };
   images: string[];
@@ -133,12 +134,17 @@ const PostCard = ({
   };
 
   const handlePostClick = () => {
+    if (isReportDialogOpen) return;
     navigate(`/dashboard/posts/${post._id}`);
   };
 
+  const isAdminPost = post.userId.role === "admin";
+
   return (
-    <div 
-      className="relative bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-6 hover:bg-white/10 transition duration-200 cursor-pointer"
+    <div
+      className={`relative bg-white/5 backdrop-blur-md rounded-xl p-6 hover:bg-white/10 transition duration-200 cursor-pointer ${
+        isAdminPost ? "border-2 border-yellow-400/70" : "border border-white/10"
+      }`}
       onClick={handlePostClick}
     >
       {/* Action buttons in top-right */}
@@ -147,7 +153,10 @@ const PostCard = ({
           <>
             {post.status !== "rejected" && (
               <button
-                onClick={() => onEdit?.(post)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.(post);
+                }}
                 className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors"
                 title="Edit Post"
               >
@@ -155,7 +164,7 @@ const PostCard = ({
               </button>
             )}
             <button
-              onClick={() => onDelete?.(post._id)}
+              onClick={(e) => { e.stopPropagation();onDelete?.(post._id); }}
               className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors"
               title="Delete Post"
             >
@@ -167,7 +176,7 @@ const PostCard = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => !hasReported && setIsReportDialogOpen(true)}
+                  onClick={(e) => { e.stopPropagation(); !hasReported && setIsReportDialogOpen(true)}}
                   className={`p-2 rounded-full transition-colors ${
                     hasReported
                       ? "text-red-500 cursor-not-allowed"
@@ -204,7 +213,7 @@ const PostCard = ({
         <div>
           <h3
             onClick={handleUserClick}
-            className="text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+            className={`font-semibold cursor-pointer hover:text-blue-400 transition-colors ${ isAdminPost ? "text-yellow-400" : "text-white" }`}
           >
             {post.userId.name}
           </h3>
@@ -239,7 +248,7 @@ const PostCard = ({
         <div>
           <div
             ref={contentRef}
-            className={`text-gray-300 break-words leading-relaxed space-y-1 ${!isExpanded ? "line-clamp-6" : ""
+            className={`text-gray-300 break-words leading-relaxed space-y-1 ${!isExpanded ? "line-clamp-4" : ""
             }`}
           >
             {parseFormattedText(post.content)}
@@ -409,12 +418,14 @@ const PostCard = ({
       )}
 
       {/* Report Dialog */}
+    <div onClick={(e) => e.stopPropagation()}>
       <ReportDialog
         postId={post._id}
         isOpen={isReportDialogOpen}
         onClose={() => setIsReportDialogOpen(false)}
         onReportSubmitted={() => setHasReported(true)}
       />
+    </div>
     </div>
   );
 };

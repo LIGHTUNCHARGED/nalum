@@ -6,8 +6,7 @@ import GivingSection from '@/components/home/GivingSection';
 import WhereWeWorkSection from '@/components/home/WhereWeWorkSection';
 import AlumniDirectorySection from '@/components/home/AlumniDirectorySection';
 import NotableAlumniSection from '@/components/home/NotableAlumniSection';
-import AlumniMap from "@/components/home/AlumniMap";
-
+import AlumniMapTeaser from "@/components/home/AlumniMapTeaser";
 
 const HomePage = () => {
   return (
@@ -19,8 +18,7 @@ const HomePage = () => {
       <NotableAlumniSection />
       <AlumniDirectorySection />
       <NewsSection />
-      <AlumniMap />
-
+      <AlumniMapTeaser />
       <GivingSection />
     </main>
   );

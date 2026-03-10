@@ -61,6 +61,14 @@ router.post(
         }
       }
 
+      // Only alumni can set location
+      if (location && Object.keys(location).length > 0) {
+        const userDoc = await User.findById(userId).select("role");
+        if (!userDoc || userDoc.role !== "alumni") {
+          location = {};
+        }
+      }
+
       const { batch, branch, campus, current_company, current_role } = req.body;
 
       // Validate required fields
