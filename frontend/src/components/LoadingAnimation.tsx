@@ -17,6 +17,19 @@ export function LoadingAnimation({
     setFadingOut(true);
   };
 
+  // Start fade-out 0.5s before the video ends so it overlaps the last frames
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (
+      video &&
+      !fadingOut &&
+      video.duration &&
+      video.currentTime >= video.duration - 0.5
+    ) {
+      setFadingOut(true);
+    }
+  };
+
   // When the CSS fade-out transition finishes, remove the overlay
   const handleTransitionEnd = () => {
     if (fadingOut) {
@@ -31,9 +44,16 @@ export function LoadingAnimation({
       if (!fadingOut && !hidden) {
         setFadingOut(true);
       }
-    }, 6000);
+    }, 4800);
     return () => clearTimeout(timer);
   }, [fadingOut, hidden]);
+
+  // Set playback speed to 1.25x
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 1.25;
+    }
+  }, []);
 
   if (hidden) return null;
 
@@ -50,7 +70,7 @@ export function LoadingAnimation({
         backgroundColor: "#000",
         paddingLeft: window.innerWidth >= 768 ? "8%" : "0",
         opacity: fadingOut ? 0 : 1,
-        transition: "opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
         pointerEvents: fadingOut ? "none" : "auto",
       }}
       onTransitionEnd={handleTransitionEnd}
@@ -61,6 +81,7 @@ export function LoadingAnimation({
         muted
         playsInline
         onEnded={handleVideoEnd}
+        onTimeUpdate={handleTimeUpdate}
         style={{
           width: "100%",
           objectFit: "contain",

@@ -4,9 +4,10 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import PostCard from "@/components/posts/PostCard";
 import EditPostModal from "@/components/posts/EditPostModal";
-import { Loader2, FileText, AlertCircle } from "lucide-react";
+import { Loader2, FileText, AlertCircle, PenSquare } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import CreatePostModal from "@/components/posts/CreatePostModal";
 
 interface Post {
   _id: string;
@@ -16,6 +17,7 @@ interface Post {
     _id: string;
     name: string;
     email: string;
+    role: string;
     profile_picture?: string;
   };
   images: string[];
@@ -37,6 +39,7 @@ const MyPosts = ({ embedded = false }: MyPostsProps) => {
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     if (user?.role === "alumni") {
@@ -140,6 +143,13 @@ const MyPosts = ({ embedded = false }: MyPostsProps) => {
       <div className={embedded ? "space-y-6" : "space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500"}>
         <div className="flex items-center justify-between">
           <h1 className={embedded ? "text-2xl font-bold text-white" : "text-3xl font-bold text-white"}>My Posts</h1>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-8 py-2 text-base text-white transition-all"
+          >
+            <PenSquare className="h-5 w-5 text-gray-400" />
+            <span>Start a post</span>
+          </button>
         </div>
 
         <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl flex flex-col">
@@ -159,6 +169,12 @@ const MyPosts = ({ embedded = false }: MyPostsProps) => {
             </div>
           </div>
         </div>
+
+        <CreatePostModal
+          open={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onPostCreated={fetchMyPosts}
+        />
       </div>
     );
   }
@@ -168,10 +184,19 @@ const MyPosts = ({ embedded = false }: MyPostsProps) => {
   return (
     <div className={embedded ? "space-y-6" : "space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500"}>
       <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
         <h1 className={embedded ? "text-2xl font-bold text-white" : "text-3xl font-bold text-white"}>My Posts</h1>
-        <p className="text-gray-400">
+        <span className="text-gray-400 text-sm">
           {posts.length} {posts.length === 1 ? "post" : "posts"}
-        </p>
+          </span>
+        </div>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-8 py-2 text-base text-white transition-all"
+        >
+          <PenSquare className="h-5 w-5 text-gray-400" />
+          <span>Start a post</span>
+        </button>
       </div>
 
       {pendingCount > 0 && (
@@ -199,6 +224,12 @@ const MyPosts = ({ embedded = false }: MyPostsProps) => {
           />
         ))}
       </div>
+      
+      <CreatePostModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onPostCreated={fetchMyPosts}
+      />
 
       <EditPostModal
         open={isEditModalOpen}
