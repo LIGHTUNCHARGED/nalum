@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { ProfileProvider, useProfile } from "@/context/ProfileContext";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 // import { useAuth } from "@/context/AuthContext"; // Removed unused
 import { cn } from "@/lib/utils";
 // import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Removed
@@ -686,6 +687,7 @@ const DashboardLayout = () => {
   return (
     <ProfileProvider>
       <DashboardContent />
+      <PWAInstallPrompt />
     </ProfileProvider>
   );
 };

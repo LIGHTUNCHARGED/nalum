@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Trash2, Check, CheckCheck } from "lucide-react";
 import { format } from "date-fns";
+import { renderMentions } from "@/lib/textFormatting";
 
 interface MessageBubbleProps {
   message: any;
@@ -48,7 +49,7 @@ export const MessageBubble = ({ message, isOwn, onDelete, isStacked, isLastInSta
             : "bg-white/10 text-gray-100 border-white/10"
             } ${isStacked ? (isOwn ? "rounded-tr-md" : "rounded-tl-md") : ""} ${!isLastInStack ? (isOwn ? "rounded-br-md" : "rounded-bl-md") : (isOwn ? "rounded-br-none" : "rounded-bl-none")}`}
         >
-          <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+          <p className="whitespace-pre-wrap break-words leading-relaxed">{renderMentions(message.content)}</p>
         </div>
 
         {/* Delete button for stacked messages (absolute to avoid layout shift) */}

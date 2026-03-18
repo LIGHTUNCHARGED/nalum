@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import MentionTextarea from "@/components/MentionTextarea";
 import { Send } from "lucide-react";
 import { useChatContext } from "@/context/ChatContext";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
@@ -25,8 +25,8 @@ export const MessageInput = ({
   const { emitTyping } = useTypingIndicator(socket, conversationId);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(e.target.value);
+  const handleInputChange = (value: string) => {
+    setMessage(value);
 
     // Emit typing start
     emitTyping(true, receiverId);
@@ -84,15 +84,15 @@ export const MessageInput = ({
   return (
     <div className="p-3 border-t border-white/10 bg-black/20 backdrop-blur-md">
       <div className="flex gap-2 items-end">
-        <Textarea
+        <MentionTextarea
           value={message}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          placeholder="Type a message..."
-          className="flex-1 min-h-[44px] max-h-[120px] resize-none bg-white/5 border-white/10 focus:bg-white/10 backdrop-blur-sm rounded-lg transition-all shadow-sm text-sm text-white placeholder:text-gray-400 pr-2"
+          placeholder="Type a message... (@mention)"
+          className="flex-1 min-h-[44px] resize-none bg-white/5 border-white/10 focus:bg-white/10 backdrop-blur-sm rounded-lg transition-all shadow-sm text-sm text-white placeholder:text-gray-400 pr-2"
           disabled={disabled}
-          rows={1}
+          style={{ maxHeight: "120px", overflowY: "auto" }}
         />
         <Button
           onClick={handleSend}

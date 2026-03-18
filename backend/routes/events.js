@@ -7,6 +7,7 @@ const uploadEventImage = require("../config/eventImage.multer");
 const { compressionPresets } = require("../middleware/imageCompression");
 const fs = require("fs");
 const path = require("path");
+const { notifyMentions } = require("../services/mentionHelper");
 
 // Check if event hosting is allowed
 router.get("/hosting-allowed", async (req, res) => {
@@ -104,6 +105,17 @@ router.post("/create", protect, uploadEventImage.single("event_image"), compress
     });
 
     await event.save();
+
+    // Fire mention notifications (non-blocking)
+    notifyMentions({
+      text: description,
+      senderId: userId,
+      senderName: user.name,
+      contextType: "event",
+      contextTitle: title,
+      actionUrl: `/dashboard/events`,
+      entityId: event._id.toString(),
+    });
 
     res.status(201).json({
       success: true,

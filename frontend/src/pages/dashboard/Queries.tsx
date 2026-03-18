@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import QueryCard from "@/components/QueryCard";
@@ -6,7 +6,7 @@ import { Loader2, MessageSquare, Send, Image as ImageIcon, X } from "lucide-reac
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import MentionTextarea from "@/components/MentionTextarea";
 import { toast } from "sonner";
 
 interface Query {
@@ -33,6 +33,7 @@ const Queries = () => {
   const [content, setContent] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const resolverRef = useRef<(t: string) => string>((t) => t);
 
   useEffect(() => {
     fetchMyQueries();
@@ -99,7 +100,7 @@ const Queries = () => {
     try {
       const formData = new FormData();
       formData.append("title", title);
-      formData.append("content", content);
+      formData.append("content", resolverRef.current(content));
       selectedImages.forEach((image) => {
         formData.append("images", image);
       });
@@ -180,14 +181,14 @@ const Queries = () => {
               </label>
               <span className="text-xs text-gray-400">{content.length}/500</span>
             </div>
-            <Textarea
+            <MentionTextarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Describe your query in detail..."
+              onChange={setContent}
+              onResolverReady={(fn) => { resolverRef.current = fn; }}
+              placeholder="Describe your query in detail... (type @ to mention someone)"
               maxLength={500}
-              rows={4}
               required
-              className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 resize-none"
+              style={{ minHeight: "96px" }}
             />
           </div>
 
