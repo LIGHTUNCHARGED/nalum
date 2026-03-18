@@ -1,9 +1,19 @@
 const express = require("express");
 const router = express.Router();
+const rateLimit = require("express-rate-limit");
 const Profile = require("../models/user/profile.model");
 
+// 60 requests per 15 minutes per IP
+const mapRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." },
+});
+
 // GET /api/alumni-map - Return alumni locations for map visualization
-router.get("/", async (req, res) => {
+router.get("/", mapRateLimiter, async (req, res) => {
   try {
     // Find all profiles with valid location coordinates
     const profilesWithLocations = await Profile.find({

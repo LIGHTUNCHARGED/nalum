@@ -93,7 +93,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "What do you want to ta
   return (
     <div className="space-y-2">
       {/* Formatting Toolbar */}
-      <div className="flex items-center gap-1 p-2 bg-white/5 rounded-lg border border-white/10">
+      <div className="flex items-center gap-1 p-2 rounded-lg border bg-white/5 border-white/10">
         {formatButtons.map((button) => (
           <Button
             key={button.label}
@@ -127,13 +127,13 @@ const RichTextEditor = ({ value, onChange, placeholder = "What do you want to ta
 
       {/* Link Dialog */}
       {showLinkDialog && (
-        <div className="p-3 bg-white/5 rounded-lg border border-white/10 space-y-2">
+        <div className="p-3 rounded-lg border space-y-2 bg-white/5 border-white/10">
           <input
             type="url"
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
             placeholder="Enter URL (https://...)"
-            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full px-3 py-2 border rounded focus:outline-none bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500/20"
             autoFocus
           />
           <div className="flex gap-2">
@@ -163,7 +163,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "What do you want to ta
       )}
 
       {/* Formatting Help */}
-      <div className="text-xs text-gray-500 space-y-1">
+      <div className="text-xs space-y-1 text-gray-500">
         <p className="font-medium text-gray-400">Formatting tips:</p>
         <div className="grid grid-cols-2 gap-2">
           <span>**bold** or <span className="font-bold">bold</span></span>

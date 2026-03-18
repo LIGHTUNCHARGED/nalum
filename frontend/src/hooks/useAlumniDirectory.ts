@@ -28,6 +28,8 @@ export interface Filters {
   branch: string;
   campus: string;
   company: string;
+  city: string;
+  country: string;
   connectionFilter: string;
   roleFilter: string;
   skills: string[];
@@ -41,6 +43,8 @@ interface SearchParams {
   branch?: string;
   campus?: string;
   company?: string;
+  city?: string;
+  country?: string;
   skills?: string;
 }
 
@@ -61,6 +65,8 @@ export const useAlumniDirectory = () => {
     branch: "",
     campus: "",
     company: "",
+    city: "",
+    country: "",
     connectionFilter: "all",
     roleFilter: "all",
     skills: [],
@@ -72,6 +78,8 @@ export const useAlumniDirectory = () => {
     branch: "",
     campus: "",
     company: "",
+    city: "",
+    country: "",
     connectionFilter: "all",
     roleFilter: "all",
     skills: [],
@@ -110,6 +118,8 @@ export const useAlumniDirectory = () => {
       if (filters.branch) params.branch = filters.branch;
       if (filters.campus) params.campus = filters.campus;
       if (filters.company) params.company = filters.company;
+      if (filters.city) params.city = filters.city;
+      if (filters.country) params.country = filters.country;
       if (filters.skills.length > 0) params.skills = filters.skills.join(",");
 
       const response = await api.get("/profile/search", {
@@ -155,6 +165,8 @@ export const useAlumniDirectory = () => {
       filters.branch ||
       filters.campus ||
       filters.company ||
+      filters.city ||
+      filters.country ||
       filters.connectionFilter !== "all" ||
       filters.roleFilter !== "all" ||
       filters.skills.length > 0;
@@ -169,6 +181,8 @@ export const useAlumniDirectory = () => {
         branch: "",
         campus: "",
         company: "",
+        city: "",
+        country: "",
         connectionFilter: "all",
         roleFilter: "all",
         skills: [],
@@ -232,6 +246,8 @@ export const useAlumniDirectory = () => {
       branch: "",
       campus: "",
       company: "",
+      city: "",
+      country: "",
       connectionFilter: "all",
       roleFilter: "all",
       skills: [],
@@ -242,6 +258,8 @@ export const useAlumniDirectory = () => {
       branch: "",
       campus: "",
       company: "",
+      city: "",
+      country: "",
       connectionFilter: "all",
       roleFilter: "all",
       skills: [],
@@ -259,6 +277,8 @@ export const useAlumniDirectory = () => {
       filters.branch !== lastSearchedFilters.branch ||
       filters.campus !== lastSearchedFilters.campus ||
       filters.company !== lastSearchedFilters.company ||
+      filters.city !== lastSearchedFilters.city ||
+      filters.country !== lastSearchedFilters.country ||
       filters.connectionFilter !== lastSearchedFilters.connectionFilter ||
       filters.roleFilter !== lastSearchedFilters.roleFilter ||
       filters.skills.length !== lastSearchedFilters.skills.length ||

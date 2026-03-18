@@ -15,6 +15,7 @@ interface Post {
     _id: string;
     name: string;
     email: string;
+    role: string;
     profile_picture?: string;
   };
   images: string[];
@@ -50,16 +51,21 @@ const PostsFeed = ({
 
       const { data } = await api.get(endpoint);
 
+      const sortByAdmin = (arr: Post[]) =>
+        [...arr].sort((a, b) =>
+          a.userId.role === 'admin' && b.userId.role !== 'admin' ? -1 : 1,
+        );
+
       if (searchQuery.trim()) {
         // Search results structure might be different or just a list
         const postsData = Array.isArray(data.data)
           ? data.data
           : data.data.posts;
-        setPosts(postsData);
+        setPosts(sortByAdmin(postsData));
         setTotalPages(1); // Hide pagination for search results
       } else {
         // Normal feed with pagination
-        setPosts(data.data.posts);
+        setPosts(sortByAdmin(data.data.posts));
         setTotalPages(data.data.pagination?.pages || 1);
       }
     } catch (err: any) {

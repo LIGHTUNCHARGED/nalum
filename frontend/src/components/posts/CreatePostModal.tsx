@@ -10,10 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import MentionTextarea from "@/components/MentionTextarea";
 import { useProfile } from "@/context/ProfileContext";
-import UserAvatar from "@/components/UserAvatar";
-import { Image, X } from "lucide-react";
-import { toast } from "sonner";
-import api from "@/lib/api";
 
 interface CreatePostModalProps {
   open: boolean;

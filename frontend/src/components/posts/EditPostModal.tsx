@@ -10,30 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import MentionTextarea from "@/components/MentionTextarea";
 import { useProfile } from "@/context/ProfileContext";
-import UserAvatar from "@/components/UserAvatar";
-import { Image, X } from "lucide-react";
-import { toast } from "sonner";
-import api from "@/lib/api";
-import { BASE_URL } from "@/lib/constants";
-
-interface Post {
-  _id: string;
-  title: string;
-  content: string;
-  userId: {
-    _id: string;
-    name: string;
-    email: string;
-    profile_picture?: string;
-  };
-  images: string[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface EditPostModalProps {
   open: boolean;
-  post: Post | null;
+  post: PostFormPost | null;
   onClose: () => void;
   onPostUpdated?: () => void;
 }

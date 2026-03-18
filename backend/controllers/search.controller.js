@@ -4,8 +4,7 @@ const Connection = require("../models/chat/connections.model");
 
 const searchProfiles = async (req, res) => {
   try {
-    const { name, graduationYear, skills, campus, branch, company, role } =
-      req.query;
+    const { name, graduationYear, skills, campus, branch, company, role, city, country, } = req.query;
 
     // Parse page and limit as numbers
     const page = parseInt(req.query.page) || 1;
@@ -58,6 +57,14 @@ const searchProfiles = async (req, res) => {
 
     if (company) {
       profileQuery.current_company = { $regex: company, $options: "i" };
+    }
+
+    if (city) {
+      profileQuery["location.city"] = { $regex: city, $options: "i" };
+    }
+
+    if (country) {
+      profileQuery["location.country"] = { $regex: country, $options: "i" };
     }
 
     const profiles = await Profile.find(profileQuery)
