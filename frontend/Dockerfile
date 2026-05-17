@@ -2,11 +2,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package.json 
-COPY package.json .
+# Copy package manifests
+COPY package*.json ./
 
 # Install dependencies
-RUN npm install --production
+RUN npm ci
 
 # Copy the rest of the source code
 COPY . .
