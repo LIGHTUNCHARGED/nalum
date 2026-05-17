@@ -35,8 +35,9 @@ const logStartupStep = (message) => {
 
 const listen = (port) =>
   new Promise((resolve, reject) => {
+    const host = process.env.HOST;
     server.once("error", reject);
-    server.listen(port, "127.0.0.1", () => {
+    server.listen(port, host, () => {
       server.off("error", reject);
       resolve();
     });
@@ -102,7 +103,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "OK", message: "Backend is working!" });
 });
 
-const port = process.env.PORT || 2478;
+const port = process.env.PORT;
 
 async function startServer() {
   try {
