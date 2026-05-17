@@ -1,42 +1,32 @@
-import '@testing-library/jest-dom';
-import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { afterEach, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
 
-// Cleanup after each test
 afterEach(() => {
   cleanup();
+  localStorage.clear();
+  vi.clearAllMocks();
 });
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: (query: string) => ({
+  value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => {},
-  }),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
 
-// Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  takeRecords() {
-    return [];
-  }
-  unobserve() {}
-} as any;
+class ResizeObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
 
-// Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-} as any;
+window.ResizeObserver = ResizeObserverMock;
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
