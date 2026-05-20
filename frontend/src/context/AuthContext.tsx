@@ -37,12 +37,6 @@ interface AuthContextType {
   logout: () => void;
 }
 
-const getCookie = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
-};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -62,18 +56,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Silent refresh on app load to restore session
   useEffect(() => {
     const restoreSession = async () => {
-      // First, try to restore from cookies for instant UI update
-      const storedToken = getCookie("access_token");
+      // Try to restore user info from localStorage for instant UI update
       const storedEmail = localStorage.getItem("email");
       const storedUser = localStorage.getItem("user");
       const storedVerified = localStorage.getItem("isVerifiedAlumni");
 
-      if (storedToken && storedEmail && storedUser) {
-        setAccessToken(storedToken);
+      if (storedEmail && storedUser) {
         setEmail(storedEmail);
         setUser(JSON.parse(storedUser));
         setIsVerifiedAlumni(storedVerified === "true");
-        setAuthToken(storedToken);
       }
 
       // Then, try to refresh the token from the backend
@@ -97,8 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsVerifiedAlumni(verified_alumni);
         setAuthToken(access_token);
 
-        // Persist to cookies
-        document.cookie = `access_token=${access_token}; path=/; max-age=1800; SameSite=Lax; secure=${window.location.protocol === 'https:'}`;
+        // Persist user info to localStorage (access_token is in httpOnly cookie)
         localStorage.setItem("email", userEmail);
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("isVerifiedAlumni", String(verified_alumni));
@@ -108,9 +98,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // No valid refresh token or it's expired
         console.log("No active session to restore");
 
-        // Clear cookies if refresh fails
-        if (!storedToken) {
-          document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+        // Clear localStorage if refresh fails
+        if (!storedEmail) {
           localStorage.removeItem("email");
           localStorage.removeItem("user");
           localStorage.removeItem("isVerifiedAlumni");
@@ -167,9 +156,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsVerifiedAlumni(isVerified);
     setAuthToken(token);
 
-    // Persist to cookies
+    // Persist user info to localStorage (access_token is in httpOnly cookie)
     if (token && email) {
-      document.cookie = `access_token=${token}; path=/; max-age=1800; SameSite=Lax; secure=${window.location.protocol === 'https:'}`;
       localStorage.setItem("email", email);
       if (userData) {
         localStorage.setItem("user", JSON.stringify(userData));
@@ -178,8 +166,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem("isVerifiedAlumni", String(isVerified));
       }
     } else {
-      // Clear localStorage/cookies if logging out
-      document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+      // Clear localStorage if logging out
       localStorage.removeItem("email");
       localStorage.removeItem("user");
       localStorage.removeItem("isVerifiedAlumni");
@@ -209,8 +196,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsVerifiedAlumni(verified_alumni);
       setAuthToken(access_token);
 
-      // Persist to cookies/localStorage
-      document.cookie = `access_token=${access_token}; path=/; max-age=1800; SameSite=Lax; secure=${window.location.protocol === 'https:'}`;
+      // Persist user info to localStorage (access_token is in httpOnly cookie)
       localStorage.setItem("email", userEmail);
       localStorage.setItem("user", JSON.stringify(userData));
       localStorage.setItem("isVerifiedAlumni", String(verified_alumni));
@@ -238,8 +224,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsVerifiedAlumni(null);
       setAuthToken(null);
 
-      // Clear localStorage/cookies
-      document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+      // Clear localStorage
       localStorage.removeItem("email");
       localStorage.removeItem("user");
       localStorage.removeItem("isVerifiedAlumni");

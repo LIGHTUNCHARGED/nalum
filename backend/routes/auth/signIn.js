@@ -99,7 +99,7 @@ router.post("/", async (req, res) => {
 
   // Set access token in client-accessible cookie
   res.cookie("access_token", access_token, {
-    httpOnly: false,
+    httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/",

@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
         });
 
         res.clearCookie('access_token', {
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/'
@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
         });
 
         res.clearCookie('access_token', {
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: '/'

@@ -81,7 +81,7 @@ exports.login = async (req, res) => {
     });
 
     res.cookie("access_token", access_token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
@@ -128,7 +128,7 @@ exports.logout = async (req, res) => {
     });
 
     res.clearCookie("access_token", {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",

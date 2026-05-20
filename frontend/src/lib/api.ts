@@ -25,12 +25,7 @@ const refreshApi = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
-  }
-  return config;
-});
+// No request interceptor needed — httpOnly cookies are sent automatically by the browser
 
 let isRefreshing = false;
 interface FailedRequest {
@@ -58,15 +53,13 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     if (
       error.response?.status === 401 &&
-      originalRequest.headers.Authorization &&
       !originalRequest._retry
     ) {
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+          .then(() => {
             return api(originalRequest);
           })
           .catch((err) => {
@@ -89,8 +82,8 @@ api.interceptors.response.use(
         // Update the access token
         setAuthToken(newAccessToken);
 
-        // Update cookies
-        document.cookie = `access_token=${newAccessToken}; path=/; max-age=1800; SameSite=Lax; secure=${window.location.protocol === 'https:'}`;
+        // access_token cookie is now set by the server (httpOnly)
+        // No need to set it client-side
         if (userData) {
           localStorage.setItem("user", JSON.stringify(userData));
         }
@@ -106,7 +99,7 @@ api.interceptors.response.use(
         processQueue(null, newAccessToken);
         isRefreshing = false;
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        // Retry the original request — the new access_token cookie is sent automatically
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
