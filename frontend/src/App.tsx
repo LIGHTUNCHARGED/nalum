@@ -10,13 +10,25 @@ import { AuthErrorHandler, SessionLoadingScreen } from "@/components/app/AppComp
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { useLocation } from "react-router-dom";
 import { usePageTracking } from "@/hooks/usePageTracking";
+import { AxiosError } from "axios";
 
-// Create QueryClient instance outside component to avoid recreating on each render
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
+      
+      // Use a function to selectively block retries for 401 errors
+      retry: (failureCount, error: unknown) => {
+        const axiosError = error as AxiosError;
+        
+        // 1. Never retry if the API explicitly says we are Unauthorized (401)
+        if (axiosError?.response?.status === 401) {
+          return false;
+        }
+
+        // 2. For all other errors (500, network timeouts), retry up to 1 time
+        return failureCount < 1;
+      },
     },
   },
 });

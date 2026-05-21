@@ -9,6 +9,7 @@ import {
 import axios from "axios";
 import { BASE_URL } from "@/lib/constants";
 import { setAuthToken } from "@/lib/api";
+import { SessionLoadingScreen } from "@/components/app/AppComponents";
 
 interface User {
   id: string;
@@ -125,7 +126,12 @@ export const AuthProvider = ({
         logout,
       }}
     >
-      {children}
+      {/* Block children from rendering while checking the session */}
+      {isLoading ? (
+        <SessionLoadingScreen />
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };

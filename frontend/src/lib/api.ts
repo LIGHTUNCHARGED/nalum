@@ -1,10 +1,27 @@
-import axios from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { BASE_URL } from "./constants";
 
 let accessToken: string | null = null;
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}> = [];
 
 export const setAuthToken = (token: string | null) => {
   accessToken = token;
+};
+
+// Helper to process pending requests once the token refreshes
+const processQueue = (error: Error | null, token: string | null = null) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve(token);
+    }
+  });
+  failedQueue = [];
 };
 
 const api = axios.create({
@@ -21,28 +38,87 @@ api.interceptors.request.use(
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
+// Extended config type to include our custom retry flag
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 api.interceptors.response.use(
   (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as CustomAxiosRequestConfig;
+    // Fail safe 
+    if (originalRequest.url?.includes("/auth/refresh")) {
+      return Promise.reject(error);
+    }
+    // If error is 401 and we haven't already retried this specific request
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      
+      if (isRefreshing) {
+        // If a refresh is already happening, queue this request
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
 
-  async (error) => {
-    if (error.response?.status === 401) {
-      console.error("Unauthorized");
+      // Lock the refresh process and mark this request as retried
+      originalRequest._retry = true;
+      isRefreshing = true;
 
-      localStorage.removeItem("user");
+      try {
+        // IMPORTANT: Use standard axios here, NOT your custom 'api' instance.
+        // Otherwise, if the refresh fails with 401, you'll enter an infinite loop.
+        const response = await axios.post(
+          `${BASE_URL}/auth/refresh-token`, // Replace with your actual refresh endpoint
+          {},
+          { withCredentials: true } 
+        );
 
-      window.location.href = "/login";
+        const newAccessToken = response.data.accessToken; // Adjust based on your API response
+        
+        setAuthToken(newAccessToken);
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        
+        // Release the queue and replay any pending requests
+        processQueue(null, newAccessToken);
+        
+        // Replay the original request that triggered the 401
+        return api(originalRequest);
+        
+      } catch (refreshError) {
+        // The refresh token itself is expired or invalid
+        processQueue(refreshError as Error, null);
+        
+        if (typeof window !== "undefined") {
+          console.error("Session expired. Logging out.");
+          localStorage.removeItem("user");
+          setAuthToken(null);
+          
+          if (window.location.pathname !== "/login") {
+            window.location.href = "/login";
+          }
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        // Always unlock the refresh process
+        isRefreshing = false;
+      }
     }
 
+    // For all other errors, just reject as normal
     return Promise.reject(error);
   }
 );
-
 export const verifyAlumniCode = async (code: string) => {
   return api.post("/alumni/verify-code", { code });
 };
