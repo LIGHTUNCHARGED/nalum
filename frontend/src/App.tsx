@@ -16,38 +16,32 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      
-      // Use a function to selectively block retries for 401 errors
       retry: (failureCount, error: unknown) => {
         const axiosError = error as AxiosError;
-        
-        // 1. Never retry if the API explicitly says we are Unauthorized (401)
         if (axiosError?.response?.status === 401) {
           return false;
         }
-
-        // 2. For all other errors (500, network timeouts), retry up to 1 time
         return failureCount < 1;
       },
     },
   },
 });
 
-// App Content with Session Check
 function AppContent() {
   const { isLoading } = useAuth();
   const location = useLocation();
   const [showIntro, setShowIntro] = useState(location.pathname === "/");
 
-  // Automatic page-view tracking for every route change
   usePageTracking();
 
+  // 1. If loading, stop the render tree dead in its tracks.
   if (isLoading) {
     return <SessionLoadingScreen />;
   }
 
+  // 2. Only after loading is false, render the authenticated providers.
   return (
-    <>
+    <NotificationProvider>
       <AuthErrorHandler />
       {showIntro && (
         <LoadingAnimation onAnimationComplete={() => setShowIntro(false)} />
@@ -56,27 +50,15 @@ function AppContent() {
         <AppRoutes />
         <Toaster />
       </TooltipProvider>
-    </>
+    </NotificationProvider>
   );
 }
 
 function App() {
-  useEffect(() => {
-    // Start keep-alive when app mounts
-    startKeepAlive();
-
-    // Cleanup on unmount
-    return () => {
-      stopKeepAlive();
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <NotificationProvider>
-          <AppContent />
-        </NotificationProvider>
+        <AppContent />
       </AuthProvider>
     </QueryClientProvider>
   );
