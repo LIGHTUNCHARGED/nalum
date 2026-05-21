@@ -10,32 +10,38 @@ import { AuthErrorHandler, SessionLoadingScreen } from "@/components/app/AppComp
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { useLocation } from "react-router-dom";
 import { usePageTracking } from "@/hooks/usePageTracking";
+import { AxiosError } from "axios";
 
-// Create QueryClient instance outside component to avoid recreating on each render
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
+      retry: (failureCount, error: unknown) => {
+        const axiosError = error as AxiosError;
+        if (axiosError?.response?.status === 401) {
+          return false;
+        }
+        return failureCount < 1;
+      },
     },
   },
 });
 
-// App Content with Session Check
 function AppContent() {
   const { isLoading } = useAuth();
   const location = useLocation();
   const [showIntro, setShowIntro] = useState(location.pathname === "/");
 
-  // Automatic page-view tracking for every route change
   usePageTracking();
 
+  // 1. If loading, stop the render tree dead in its tracks.
   if (isLoading) {
     return <SessionLoadingScreen />;
   }
 
+  // 2. Only after loading is false, render the authenticated providers.
   return (
-    <>
+    <NotificationProvider>
       <AuthErrorHandler />
       {showIntro && (
         <LoadingAnimation onAnimationComplete={() => setShowIntro(false)} />
@@ -44,27 +50,15 @@ function AppContent() {
         <AppRoutes />
         <Toaster />
       </TooltipProvider>
-    </>
+    </NotificationProvider>
   );
 }
 
 function App() {
-  useEffect(() => {
-    // Start keep-alive when app mounts
-    startKeepAlive();
-
-    // Cleanup on unmount
-    return () => {
-      stopKeepAlive();
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <NotificationProvider>
-          <AppContent />
-        </NotificationProvider>
+        <AppContent />
       </AuthProvider>
     </QueryClientProvider>
   );
