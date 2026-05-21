@@ -41,7 +41,8 @@ function AppContent() {
 
   // 2. Only after loading is false, render the authenticated providers.
   return (
-    <NotificationProvider>
+    <>
+      {/* removing the notification provider for now as it is causing some issues with the auth provider. Will add it back later. */}
       <AuthErrorHandler />
       {showIntro && (
         <LoadingAnimation onAnimationComplete={() => setShowIntro(false)} />
@@ -50,7 +51,7 @@ function AppContent() {
         <AppRoutes />
         <Toaster />
       </TooltipProvider>
-    </NotificationProvider>
+    </>
   );
 }
 
