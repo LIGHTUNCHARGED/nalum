@@ -79,12 +79,12 @@ api.interceptors.response.use(
         // IMPORTANT: Use standard axios here, NOT your custom 'api' instance.
         // Otherwise, if the refresh fails with 401, you'll enter an infinite loop.
         const response = await axios.post(
-          `${BASE_URL}/auth/refresh-token`, // Replace with your actual refresh endpoint
+          `${BASE_URL}/auth/refresh`,
           {},
           { withCredentials: true } 
         );
 
-        const newAccessToken = response.data.accessToken; // Adjust based on your API response
+        const newAccessToken = response.data.data.access_token;
         
         setAuthToken(newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
