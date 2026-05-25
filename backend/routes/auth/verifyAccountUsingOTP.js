@@ -40,8 +40,8 @@ router.post("/", async (req, res) => {
 
   // Auto-login: create a session and return tokens so the user doesn't need to sign in manually
   const sessionData = await sessions.getOrCreate(email, user.data._id);
-  if (sessionData.error) {
-    // Verification succeeded but auto-login failed — user can still login manually
+  if (!sessionData || sessionData.error) {
+    // Verification succeeded but auto-login failed (or mocked in tests)
     return res.status(200).json({ error: false, code: 200, message: "Account verified successfully" });
   }
 
