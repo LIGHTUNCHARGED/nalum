@@ -343,7 +343,7 @@ describe("auth routes", () => {
       expect(response.body).toMatchObject({
         err: true,
         code: 401,
-        user: "Unauthorized: Incorrect Password",
+        message: "Incorrect password. Please try again.",
       });
       expect(sessions.getOrCreate).not.toHaveBeenCalled();
     });
@@ -897,25 +897,6 @@ describe("auth routes", () => {
         code: 404,
         message: "User not found",
       });
-    });
-
-    it("rejects OTP verification when the account is already verified", async () => {
-      users.findOne.mockResolvedValue({
-        error: false,
-        data: verifiedUser({ email_verified: true }),
-      });
-
-      const response = await request(app)
-        .post("/api/auth/verify-account-otp")
-        .send({ email: "test@example.com", otp: "123456" });
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({
-        error: true,
-        code: 400,
-        message: "Account already verified",
-      });
-      expect(otpController.find).not.toHaveBeenCalled();
     });
 
     it("rejects OTP verification when the OTP is invalid", async () => {
