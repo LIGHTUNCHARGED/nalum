@@ -104,7 +104,9 @@ function CommentCard({
   const [isSaving, setIsSaving] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
 
-  const isOwner = user?.user_id === comment.author?._id;
+  const currentUserId = user?.user_id ?? user?.id;
+  const commentAuthorId = comment.author?._id ?? comment.authorId;
+  const isOwner = String(currentUserId ?? "") === String(commentAuthorId ?? "");
   const canManage = isOwner || user?.role === "admin";
   const displayContent = comment.isDeleted
     ? "This comment was deleted."
