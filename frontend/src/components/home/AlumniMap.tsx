@@ -294,6 +294,11 @@ const AlumniMap = () => {
             zoom={2}
             minZoom={2}
             maxZoom={18}
+            maxBounds={[
+              [-85, -180], // Southwest coordinate
+              [85, 180]    // Northeast coordinate
+            ]}
+            maxBoundsViscosity={1.0}
             style={{ height: "100%", width: "100%" }}
             className="z-0"
           >
